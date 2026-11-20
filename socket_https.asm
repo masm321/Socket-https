@@ -21,33 +21,11 @@ PROTO64 external,logout,:QWORD,:QWORD
 
 .data?
 
-align 16
-;output_SecBufferDesc_buffer		_SecBufferDesc<?>
-align 16
-;output_SecBuffer_buffer		_SecBuffer <?>			;win64.inc里有定义
-align 16
-;output_pOutput_buffer				db 4000h dup (?)	;如果不提供，会自动生成一个 但需要FreeContextBuffer 释放
-align 16
-
-align 16
-
-align 16
-
-align 16
 input_SecBuffer_buffer2		_SecBuffer <?>
-align 16
-
-align 16
-
-align 16
-
 align 16
 
 recv_token_buffer					db 4000h dup (?);这个缓冲接收服务器返回的令牌
 
-align 16
-
-align 16
 
 temp_buffer_for_list_zzz		db 5*_SecBuffer dup (?)
 
@@ -478,15 +456,6 @@ uncommpress_png proc <:qword,:qword,:qword,:qword>  uses rbx rsi rdi ungzipbuffe
 
 uncommpress_png endp
 
-png_decompress_chunk proc uses rbx rsi rdi r10 r11 r12 r13 r14 r15
-			;解压png文件
-	sub rsp,80h
-	
-	
-	add rsp,80h
-	ret
-
-png_decompress_chunk endp
 
 EncryptMessage_and_send proc <:qword,:qword,:qword,:qword,:qword,:qword> uses rbx rsi rdi r10 r11 r12 r13 r14 r15 _hSocket:qword,_pCtxtHandle:qword,_json_buffer:qword,_json_buffer_length:qword,_pjson_send_buffer:qword,_pjson_send_buffer_length:qword
 		LOCAL @hSocket:qword
@@ -2675,7 +2644,6 @@ connect_SecurityContext  proc <:qword,:qword,:qword,qword,:qword,:qword> uses rb
 			.else
 				jmp @f	
 			.endif
-			
 			
 			mov rsi,@ppChainContext
 			

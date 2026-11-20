@@ -126,78 +126,6 @@ GdiPlusBegin MACRO
       invoke GdiplusShutdown,GDItoken@@@@        ; cleanup on exit
     ENDM
     
-    
-layersinfo struct 16		;神经网络的层数，我们是全连接
-	playersinfo LIST_ENTRY <>	;每一个层的信息
-	layer_in_layers	dq ?	;处在哪一层
-	
-	firstlayer	dq ?;第一层吗？
-	endlayer	dq ?;最后一层吗？
-	weight_count	dq ?;本层的权重参数计数
-	
-	weight_buffer_length_all 	dq ? 	;所有的分配的内存的总数
-	
-	pweight_buffer_list	LIST_ENTRY <?>;权重参数缓冲 是一个链表 lea memory_list_for_weight 比如第一层的权重为 80*80*80*80*8 = 312M，所以直接申请的话是不会成功的
-	pweight_tidu_buffer_list	LIST_ENTRY <?>;权重梯度链表和权重缓冲区大小一样
-	last_neure_cell_count dq ?;上层神经元计数
-	neure_cell_count dq ?;本层神经元计数
-	pneure_cell_buffer dq ?	;神经元缓冲区，一般的我们的位图是80*80 用双精度浮点表示 为80*80*8 = 51200字节 ,这里代表 激活值：g(z)
-	
-	pbias_buffer			dq ?	;偏置项
-	
-	pz_value_buffer			dq ?	;Z值 thta*x= Z	;它和神经元具有相同的个数
-	
-	pa_value_buffer		dq ?;激活值：g(z) 缓冲区
-	
-	pdelta_value_buffer	dq ?;本层神经元的中间误差
-	
-	z_value_all		dq ?
-	a_value_all		dq ?
-	delta_value_all		dq ?
-	
-layersinfo ends 
-memory_list_for_weight struct		;权重要分配的内存有可能很大，最好使用链表
-
-	_LIST_ENTRY LIST_ENTRY <?>;释放的时候也需要这个地址
-	weight_buffer_Size	dq ?
-	pweight_buffer dq ?	
-	buffer		dq ?
-	
-memory_list_for_weight ends
-thread_param struct
-	
-	pmemory_bitmap_buffer 			dq ?	;每个线程可以访问的灰度图链表
-	pthread_layersinfo_LIST_ENTRY_buffer	dq ?		;线程创建的层链表指针
-	hevent_for_done				dq ?		;本线程已经处理完毕的事件
-	hevent_for_wait				dq ?		;本线程等待是否需要继续处理的事件
-	
-	_rect					RECT <?>
-	child_id				dq ?
-	jtheta					dq ?		;产生的jtheta
-thread_param ends    
-    
-record_voice_struct struct
-	hWin			dq ?
-	hwaveout		dq ?
-	wave_out_free		dq ?;查找一个可以使用的输出内存
-	record_buffer 		dq ?
-	record_buffer_length 	dq ?
-	WAVEHDR_out_buffer1	dq ?
-	WAVEHDR_out_buffer2	dq ?
-	WAVEHDR_out_buffer3	dq ?
-	WAVEHDR_out_buffer4	dq ?
-	
-	
-record_voice_struct ends
-
-s_hard_sample_src_dir_and_des_dir struct
-	psrc_dir	dq ?
-	
-	pdes_dir dq ?
-	
-	sample_flags dq ?	;正负样本
-	
-s_hard_sample_src_dir_and_des_dir ends
 
 .data
 floadlimt_40		real8 0.40
@@ -215,16 +143,14 @@ fload20000		real8 20000.0
 fload30000		real8 30000.0
 fload50000		real8 50000.0
 .const
-backweigth_name_big					db "d:\weigth_big.hex",0
-backweigth_name_small					db "d:\weigth_small.hex",0
-backbias_name_small					db "d:\bias_small.hex",0
+
 zlib_ver			db "1.2.11",0
 camtitle		       db 'masm64WEBCAM'
 ClassName			db 'DLGCLASS',0
 AppName				db 'Dialog as main',0
 AboutMsg			db 'MASM32 RadASM Dialog as main',13,10,'Copyright ?MASM32 2001',0
 _messagebox_exit_proc		db "_messagebox_exit_proc",0
-szFilter	db	'Bmp Files(*.bmp)',0,'*.bmp',0,'All Files(*.*)',0,'*.*',0,0
+
 findfilename				db "\*.bmp",0
 pcmfilename				db "\testrecoad.pcm",0
 errorfilename				db "\error.txt",0
@@ -626,213 +552,14 @@ SSL_CTX_free_text		db "SSL_CTX_free",0
 SSL_shutdown_text		db "SSL_shutdown",0
 SSL_set_fd_text			db "SSL_set_fd",0
 
-landmark150			db '"landmark150":',0
 
-x_flags				db '{"x":',0
-y_flags				db '"y":',0
-
-cheek_right_1			db '"cheek_right_1":',0
-cheek_right_3			db '"cheek_right_3":',0
-cheek_right_5			db '"cheek_right_5":',0
-cheek_right_7			db '"cheek_right_7":',0
-cheek_right_9			db '"cheek_right_9":',0
-cheek_right_11			db '"cheek_right_11":',0
-
-chin_2				db '"chin_2"',0
-
-cheek_left_11			db '"cheek_left_11":',0
-cheek_left_9			db '"cheek_left_9":',0
-cheek_left_7			db '"cheek_left_7":',0
-cheek_left_5			db '"cheek_left_5":',0
-cheek_left_3			db '"cheek_left_3":',0
-cheek_left_1			db '"cheek_left_1":',0
-
-eye_right_corner_right		db '"eye_right_corner_right":',0
-eye_right_eyelid_upper_2	db '"eye_right_eyelid_upper_2":',0
-eye_right_eyelid_upper_4	db '"eye_right_eyelid_upper_4":',0
-eye_right_eyelid_upper_6	db '"eye_right_eyelid_upper_6":',0
-
-eye_right_corner_left		db '"eye_right_corner_left":',0
-eye_right_eyelid_lower_6	db '"eye_right_eyelid_lower_6":',0
-eye_right_eyelid_lower_4	db '"eye_right_eyelid_lower_4":',0
-eye_right_eyelid_lower_2	db '"eye_right_eyelid_lower_2":',0
-eye_right_eyeball_center	db '"eye_right_eyeball_center":',0
-eyebrow_right_corner_right	db '"eyebrow_right_corner_right":',0
-
-eyebrow_right_upper_2		db '"eyebrow_right_upper_2":',0
-eyebrow_right_upper_3		db '"eyebrow_right_upper_3":',0
-
-eyebrow_right_corner_left	db '"eyebrow_right_corner_left":',0
-
-eyebrow_right_lower_3		db '"eyebrow_right_lower_3":',0
-eyebrow_right_lower_2		db '"eyebrow_right_lower_2":',0
-eyebrow_right_lower_1		db '"eyebrow_right_lower_1":',0
-
-eye_left_corner_right		db '"eye_left_corner_right":',0
-
-eye_left_eyelid_upper_2		db '"eye_left_eyelid_upper_2":',0
-eye_left_eyelid_upper_4		db '"eye_left_eyelid_upper_4":',0
-eye_left_eyelid_upper_6		db '"eye_left_eyelid_upper_6":',0
-
-eye_left_corner_left		db '"eye_left_corner_left":',0
-eye_left_eyelid_lower_6		db '"eye_left_eyelid_lower_6":',0
-eye_left_eyelid_lower_4		db '"eye_left_eyelid_lower_4":',0
-eye_left_eyelid_lower_2		db '"eye_left_eyelid_lower_2":',0
-
-eyebrow_left_corner_right	db '"eyebrow_left_corner_right":',0
-
-eyebrow_left_upper_2		db '"eyebrow_left_upper_2":',0
-eyebrow_left_upper_3		db '"eyebrow_left_upper_3":',0
-eyebrow_left_upper_4		db '"eyebrow_left_upper_4":',0
-
-eyebrow_left_corner_left	db '"eyebrow_left_corner_left":',0
-eyebrow_left_lower_3		db '"eyebrow_left_lower_3":',0
-eyebrow_left_lower_2		db '"eyebrow_left_lower_2":',0
-eyebrow_left_lower_1		db '"eyebrow_left_lower_1":',0
-
-nose_right_contour_1		db '"nose_right_contour_1":',0
-nose_right_contour_2		db '"nose_right_contour_2":',0
-nose_right_contour_3		db '"nose_right_contour_3":',0
-nose_right_contour_4		db '"nose_right_contour_4":',0
-nose_right_contour_6		db '"nose_right_contour_6":',0
-
-nose_left_contour_6		db '"nose_left_contour_6":',0
-nose_left_contour_4		db '"nose_left_contour_4":',0
-nose_left_contour_3		db '"nose_left_contour_3":',0
-nose_left_contour_2		db '"nose_left_contour_2":',0
-nose_left_contour_1		db '"nose_left_contour_1":',0
-
-nose_tip			db '"nose_tip":',0
-
-mouth_corner_right_outer	db '"mouth_corner_right_outer":',0
-
-mouth_lip_upper_outer_3		db ',"mouth_lip_upper_outer_3":',0
-mouth_lip_upper_outer_6		db ',"mouth_lip_upper_outer_6":',0
-mouth_lip_upper_outer_9		db ',"mouth_lip_upper_outer_9":',0
-
-mouth_corner_left_outer		db '"mouth_corner_left_outer":',0
-
-mouth_lip_lower_outer_9		db '"mouth_lip_lower_outer_9":',0
-mouth_lip_lower_outer_6		db '"mouth_lip_lower_outer_6":',0
-mouth_lip_lower_outer_3		db '"mouth_lip_lower_outer_3":',0
-
-mouth_lip_upper_inner_3		db '"mouth_lip_upper_inner_3":',0
-mouth_lip_upper_inner_6		db '"mouth_lip_upper_inner_6":',0
-mouth_lip_upper_inner_9		db '"mouth_lip_upper_inner_9":',0
-
-mouth_lip_lower_inner_9		db '"mouth_lip_lower_inner_9":',0
-mouth_lip_lower_inner_6		db '"mouth_lip_lower_inner_6":',0
-mouth_lip_lower_inner_3		db '"mouth_lip_lower_inner_3":',0
-
-cheek_right_2			db '"cheek_right_2":',0
-cheek_right_4			db '"cheek_right_4":',0
-cheek_right_6			db '"cheek_right_6":',0
-cheek_right_8			db '"cheek_right_8":',0
-cheek_right_10			db '"cheek_right_10":',0
-chin_1				db '"chin_1":',0
-chin_3				db '"chin_3":',0
-
-cheek_left_10			db '"cheek_left_10":',0
-cheek_left_8			db '"cheek_left_8":',0
-cheek_left_6			db '"cheek_left_6":',0
-cheek_left_4			db '"cheek_left_4":',0
-cheek_left_2			db '"cheek_left_2":',0
-eyebrow_right_upper_1		db '"eyebrow_right_upper_1":',0
-eyebrow_right_upper_5		db '"eyebrow_right_upper_5":',0
-eyebrow_left_upper_1		db '"eyebrow_left_upper_1":',0
-eyebrow_left_upper_5		db '"eyebrow_left_upper_5":',0
-
-eye_right_eyelid_upper_1	db '"eye_right_eyelid_upper_1":',0
-eye_right_eyelid_upper_3	db '"eye_right_eyelid_upper_3":',0
-eye_right_eyelid_upper_5	db '"eye_right_eyelid_upper_5":',0
-eye_right_eyelid_upper_7	db '"eye_right_eyelid_upper_7":',0
-
-eye_right_eyelid_lower_7	db ',"eye_right_eyelid_lower_7":',0
-eye_right_eyelid_lower_5	db ',"eye_right_eyelid_lower_5":',0
-eye_right_eyelid_lower_3	db ',"eye_right_eyelid_lower_3":',0
-eye_right_eyelid_lower_1	db ',"eye_right_eyelid_lower_7":',0
-
-eye_right_eyeball_right		db '"eye_right_eyeball_right":',0
-eye_right_eyeball_left		db '"eye_right_eyeball_left":',0
-
-eye_left_eyelid_upper_1		db '"eye_left_eyelid_upper_1":',0
-eye_left_eyelid_upper_3		db '"eye_left_eyelid_upper_3":',0
-eye_left_eyelid_upper_5		db '"eye_left_eyelid_upper_5":',0
-eye_left_eyelid_upper_7		db '"eye_left_eyelid_upper_7":',0
-
-eye_left_eyelid_lower_7		db '"eye_left_eyelid_lower_7":',0
-eye_left_eyelid_lower_5		db '"eye_left_eyelid_lower_5":',0
-eye_left_eyelid_lower_3		db '"eye_left_eyelid_lower_3":',0
-eye_left_eyelid_lower_1		db '"eye_left_eyelid_lower_1":',0
-
-eye_left_eyeball_right		db '"eye_left_eyeball_right":',0
-eye_left_eyeball_left		db '"eye_left_eyeball_left"',0
-
-nose_bridge_1			db '"nose_bridge_1"',0
-nose_bridge_2			db '"nose_bridge_2"',0
-nose_bridge_3			db '"nose_bridge_3"',0
-
-
-nose_right_contour_5		db '"nose_right_contour_5":',0
-nose_right_contour_7		db '"nose_right_contour_7":',0
-nose_left_contour_7		db '"nose_left_contour_7":',0
-nose_left_contour_5		db '"nose_left_contour_5":',0
-nose_middle_contour		db '"nose_middle_contour":',0
-mouth_corner_right_inner	db '"mouth_corner_right_inner":',0
-mouth_corner_left_inner		db '"mouth_corner_left_inner":',0
-
-mouth_lip_upper_outer_1		db '"mouth_lip_upper_outer_1":',0
-mouth_lip_upper_outer_2		db '"mouth_lip_upper_outer_2":',0
-mouth_lip_upper_outer_4		db '"mouth_lip_upper_outer_4":',0
-mouth_lip_upper_outer_5		db '"mouth_lip_upper_outer_5":',0
-mouth_lip_upper_outer_7		db '"mouth_lip_upper_outer_7":',0
-mouth_lip_upper_outer_8		db '"mouth_lip_upper_outer_8":',0
-mouth_lip_upper_outer_10	db '"mouth_lip_upper_outer_10":',0
-mouth_lip_upper_outer_11	db '"mouth_lip_upper_outer_11":',0
-
-mouth_lip_lower_outer_11	db '"mouth_lip_lower_outer_11":',0
-mouth_lip_lower_outer_10	db '"mouth_lip_lower_outer_10":',0
-mouth_lip_lower_outer_8		db '"mouth_lip_lower_outer_8":',0
-mouth_lip_lower_outer_7		db '"mouth_lip_lower_outer_7":',0
-mouth_lip_lower_outer_5		db '"mouth_lip_lower_outer_5":',0
-mouth_lip_lower_outer_4		db '"mouth_lip_lower_outer_4":',0
-mouth_lip_lower_outer_2		db '"mouth_lip_lower_outer_2":',0
-mouth_lip_lower_outer_1		db '"mouth_lip_lower_outer_1":',0
-
-
-mouth_lip_upper_inner_1		db '"mouth_lip_upper_inner_1":',0
-mouth_lip_upper_inner_2		db '"mouth_lip_upper_inner_2":',0
-mouth_lip_upper_inner_4		db '"mouth_lip_upper_inner_4":',0
-mouth_lip_upper_inner_5		db '"mouth_lip_upper_inner_5":',0
-mouth_lip_upper_inner_7		db '"mouth_lip_upper_inner_7":',0
-mouth_lip_upper_inner_8		db '"mouth_lip_upper_inner_8":',0
-mouth_lip_upper_inner_10	db '"mouth_lip_upper_inner_10":',0
-mouth_lip_upper_inner_11	db '"mouth_lip_upper_inner_11":',0
-
-mouth_lip_lower_inner_11	db '"mouth_lip_lower_inner_11"',0
-mouth_lip_lower_inner_10	db '"mouth_lip_lower_inner_10"',0
-mouth_lip_lower_inner_8		db '"mouth_lip_lower_inner_8"',0
-mouth_lip_lower_inner_7		db '"mouth_lip_lower_inner_7"',0
-mouth_lip_lower_inner_5		db '"mouth_lip_lower_inner_5"',0
-mouth_lip_lower_inner_4		db '"mouth_lip_lower_inner_4"',0
-mouth_lip_lower_inner_2		db '"mouth_lip_lower_inner_2"',0
-mouth_lip_lower_inner_1		db '"mouth_lip_lower_inner_1"',0
-
-
-
-readfile_pic_error		db "addr readfile_pic_error",0
-
-nopicture			db "nopicture",0
-
-picname				db "\resizepic.bmp",0
-downtimeout			db "获取服务端人脸检测数据超时继续等待？",0
 
 nDevice   	 dq  0	       ; Device Number -> It can range from 0 through 9
   nFPS	     	dq 33       ; Frames per second. Must be 1000/FPS. E.g. 20 FPS = 50 milliseconds 毫秒;千分之一秒  Rate, in milliseconds
 .data?
 pbitmap_buffer_detector_ok		dq ?
 hlock_read_write			dq ?
-hard_sample_src_dir_and_des_dir		s_hard_sample_src_dir_and_des_dir <?>
+
 hevent_ai				dq ?	;通知进行人脸检测的事件
 hevent_continue_video			dq ?
 pbitmap_for_face_detector		dq ?
@@ -841,79 +568,8 @@ dc_org					dq ?
 wave_VHDR_KEYFRAM_count			dq ?
 heap_send_with_EncryptMessage		dq ?
 
-CredHandle_face			dq 10h dup (?)
-CtxtHandle_face			dq 10h dup (?)
-timstamp_face			dq 10h dup (?)
-
-CredHandle_weather			dq 10h dup (?);A pointer to a CredHandle structure to receive the credential handle.
-CtxtHandle_weather			dq 10h dup (?)
-timstamp_weather			dq 10h dup (?)
-
-CredHandle_voice2text			dq 10h dup (?)
-CtxtHandle_voice2text			dq 10h dup (?)
-timstamp_voice2text			dq 10h dup (?)
-
-CredHandle_text2voice			dq 10h dup (?)
-CtxtHandle_text2voice			dq 10h dup (?)
-timstamp_text2voice			dq 10h dup (?)
 
 
-
-
-
-pheap_send_weather_with_EncryptMessage	dq ?;天气数据加密发送服务端时需要的缓冲区
-pheap_send_weather_with_EncryptMessage_length dq ?
-pheap_recv_weather_with_EncryptMessage	dq ?	;;天气数据解密后从送服务端接收时需要的缓冲区
-pheap_recv_weather_with_EncryptMessage_length	dq ?
-pheap_recv_weather_with_ungzip_EncryptMessage	dq ?	;天气数据解密后再解压缩时需要的缓冲区
-pheap_recv_weather_with_ungzip_EncryptMessage_length	dq ?
-
-pheap_send_face_with_send			dq ?
-pheap_send_face_with_EncryptMessage		dq ?
-pheap_recv_face_with_EncryptMessage	dq ?	
-pheap_recv_face_with_EncryptMessage_length	dq ?
-pheap_recv_face_with_ungzip_EncryptMessage	dq ?	
-pheap_recv_face_with_ungzip_EncryptMessage_length	dq ?
-
-
-
-
-
-pheap_send_voice2text_with_send			dq ?	;发送的时候用的;因为语音数据是不定长的，所以不能固定，只能申请个大一点的
-pheap_send_voice2text_with_EncryptMessage	dq ?
-pheap_send_voice2text_with_EncryptMessage_length dq ?
-pheap_recv_voice2text_with_EncryptMessage	dq ?	
-pheap_recv_voice2text_with_EncryptMessage_length	dq ?
-pheap_recv_voice2text_with_ungzip_EncryptMessage	dq ?	
-pheap_recv_voice2text_with_ungzip_EncryptMessage_length	dq ?
-
-
-
-
-
-
-pheap_send_text2voice_with_send			dq ?	;发送的时候用的;因为文字数据是不定长的，所以不能固定，并且要转换成UTF-8 只能申请个大一点的
-pheap_send_text2voice_with_EncryptMessage	dq ?
-pheap_send_text2voice_with_EncryptMessage_length dq ?
-pheap_recv_text2voice_with_EncryptMessage	dq ?	
-pheap_recv_text2voice_with_EncryptMessage_length	dq ?
-pheap_recv_text2voice_with_ungzip_EncryptMessage	dq ?	
-pheap_recv_text2voice_with_ungzip_EncryptMessage_length	dq ?
-
-
-
-hSocket_face_token		dq ?
-hSocket_face				dq ?
-hSocket_voice_token		dq ?;语音类令牌
-hSocket_voice			dq ?;语音类
-hSocket_text2voice		dq ?
-hSocket_weather			dq ?
-pvoice_baidu_buffer		dq ?;10秒缓冲区指针
-current_pos_baidu		dq ?;10秒缓冲区指针 有效数据长度
-hWebcam				dq ?
-hevent				dq ?
-hthread				dq ?
-errorcount			dq ?	;关键点检测失败计数
 tcp_keepalive_in_buffer		tcp_keepalive <?>
 align 16
 tcp_keepalive_out_buffer		tcp_keepalive <?>
@@ -925,20 +581,9 @@ phbitmap_wheater_buffer		dq ?
 bitmap_weather_width		dq ?
 bitmap_weather_higth		dq ?
 hDIBitmap_weather		dq ?
-hwavein				dq ?;波形输入句柄
-hwaveout				dq ?;波形输出句柄
-WAVEFORMATEX_buffer		WAVEFORMATEX <?>
-WAVEFORMATEX_out_buffer		WAVEFORMATEX <?>
+
 align 16
-WAVEHDR_buffer1			WAVEHDR <?>
-WAVEHDR_buffer2			WAVEHDR <?>
-WAVEHDR_out_buffer1		WAVEHDR <?>
-WAVEHDR_out_buffer2		WAVEHDR <?>
-WAVEHDR_out_buffer3		WAVEHDR <?>
-WAVEHDR_out_buffer4		WAVEHDR <?>
-WAVEHDR_out_buffer5		WAVEHDR <?>
-WAVEHDR_out_buffer_text2voice		WAVEHDR <?>
-record_voice_struct_buffer		record_voice_struct <?>
+
 __SYSTEMTIME			_SYSTEMTIME <>
 hevent_wave_out		dq ?
 szDeviceName			db 80 dup (?)
